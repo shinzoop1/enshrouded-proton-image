@@ -67,8 +67,10 @@ RUN mkdir -p /opt \
        "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${GE_PROTON_VERSION}/${GE_PROTON_VERSION}-x86_64.tar.gz" \
        -o /tmp/ge-proton.tar.gz \
     && tar -xzf /tmp/ge-proton.tar.gz -C /opt \
-    && test -x "/opt/${GE_PROTON_VERSION}/proton" \
-    && printf '#!/bin/sh\nexec /opt/%s/proton "$@"\n' "${GE_PROTON_VERSION}" > /usr/local/bin/proton \
+    && PROTON_BIN="$(find /opt -maxdepth 4 -type f -name proton -print -quit)" \
+    && test -n "$PROTON_BIN" \
+    && chmod 0755 "$PROTON_BIN" \
+    && printf '#!/bin/sh\nexec "%s" "$@"\n' "$PROTON_BIN" > /usr/local/bin/proton \
     && chmod 0755 /usr/local/bin/proton \
     && rm -f /tmp/ge-proton.tar.gz
 
