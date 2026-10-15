@@ -3,9 +3,11 @@ FROM ghcr.io/ptero-eggs/steamcmd:proton
 USER root
 
 # GE-Proton is installed alongside the Pterodactyl SteamCMD/Proton base image.
-# The egg's existing startup command can continue to call: proton run ...
+# Enshrouded's existing egg startup command can continue to call: proton run ...
+# Proton imports its Vulkan helper at launch, so include the Vulkan loader and
+# Mesa software Vulkan driver even though this is a headless dedicated server.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl tar \
+    && apt-get install -y --no-install-recommends ca-certificates curl tar libvulkan1 mesa-vulkan-drivers \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /opt/ge-proton \
     && curl -fL --retry 3 --retry-all-errors \
@@ -13,7 +15,8 @@ RUN apt-get update \
        -o /tmp/ge-proton.tar.gz \
     && tar -xzf /tmp/ge-proton.tar.gz --strip-components=1 -C /opt/ge-proton \
     && rm -f /tmp/ge-proton.tar.gz \
-    && test -x /opt/ge-proton/proton
+    && test -x /opt/ge-proton/proton \
+    && ldconfig
 
 # Make the GE-Proton launcher take precedence over the base image's Proton.
 ENV PATH="/opt/ge-proton:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
